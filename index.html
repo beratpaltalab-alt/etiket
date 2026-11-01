@@ -400,17 +400,27 @@ $('baglan').onclick = async () => {
     }
     await portuAc(await navigator.serial.requestPort({ filters: USB_FILTRE }));
     await surumDenetle();
-  } catch (e) { kayit('! ' + e.message); if (!bagli) $('durum').textContent = 'Bağlı değil'; }
+  } catch (e) { baglanamadi(e); }
   dugmeleriAyarla();
 };
 
 const USB_FILTRE = [{ usbVendorId: 0x239A }, { usbVendorId: 0x2E8A }];
 const beklet = ms => new Promise(r => setTimeout(r, ms));
+const BASKA_YERDE_ACIK = 'Klavye başka bir sekmede ya da tarayıcıda açık. Onu kapatıp tekrar deneyin.';
+function baglanamadi(e) {
+  kayit('! ' + e.message);
+  if (!bagli) $('durum').textContent = e.message === BASKA_YERDE_ACIK ? BASKA_YERDE_ACIK : 'Bağlı değil';
+}
 async function portuAc(p) {
   try { yazici && yazici.releaseLock(); } catch (e) {}   // kablo çekilmişse eski bağlantıyı bırak
   try { port && await port.close(); } catch (e) {}
   port = p;
-  await port.open({ baudRate: 115200 });
+  try { await port.open({ baudRate: 115200 }); }
+  catch (e) {
+    port = null;
+    if (e.name === 'NetworkError') throw new Error(BASKA_YERDE_ACIK);   // kart aynı anda tek programa bağlanır
+    throw e;
+  }
   yazici = port.writable.getWriter();
   bagli = true; $('durum').textContent = 'Bağlı ✅'; $('baglan').textContent = 'Bağlantıyı kes';
   okuDongusu();
@@ -426,7 +436,7 @@ async function izinliPort() {
 async function otomatikBaglan() {
   if (bagli || mesgul || !('serial' in navigator)) return;
   try { const p = await izinliPort(); if (p) { await portuAc(p); await surumDenetle(); } }
-  catch (e) { kayit('! ' + e.message); if (!bagli) $('durum').textContent = 'Bağlı değil'; }
+  catch (e) { baglanamadi(e); }
   dugmeleriAyarla();
 }
 
