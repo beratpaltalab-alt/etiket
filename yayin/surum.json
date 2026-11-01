@@ -1,0 +1,12 @@
+{
+ "PROTO": {
+  "deneme": {
+   "surum": "1.2.7",
+   "dosya": "yazilim-PROTO-1.2.7.bin.gz",
+   "crc32": "b8581c4c",
+   "notlar": [
+    "Prototip denemesi: USB takılma düzeltmesi"
+   ]
+  }
+ }
+}
